@@ -33,6 +33,12 @@ LoopExtract_FilenamePrefix = MG_loop_lightquark_conf_conf
 # suffix of the HDF5 filename after the configuration number
 LoopExtract_FilenameSuffix = runtype_probD8_part1_stoch_NeV0
 
+# prefix of the output HDF5 filename before the configuration number
+LoopExtract_OutputFilenamePrefix = filtered_MG_loop_lightquark_conf_conf
+# suffix of the output HDF5 filename after the configuration number
+LoopExtract_OutputFilenameSuffix = runtype_probD8_part1_stoch_NeV0
+
+
 # The loop data can be accumulated over stochastic sources, in which case
 # the relevant part of the HDF5 group name is "Nstoch_xxxx"
 # Conversely, if the data has been generated without accumulation,

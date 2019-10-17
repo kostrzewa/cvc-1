@@ -193,6 +193,8 @@ EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 EXTERN char g_LoopExtract_InPath[400];
 EXTERN char g_LoopExtract_FilenamePrefix[400];
 EXTERN char g_LoopExtract_FilenameSuffix[400];
+EXTERN char g_LoopExtract_OutputFilenamePrefix[400];
+EXTERN char g_LoopExtract_OutputFilenameSuffix[400];
 
 EXTERN int g_LoopExtract_InQSq;
 EXTERN int g_LoopExtract_OutQSq;

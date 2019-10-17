@@ -249,6 +249,8 @@ static inline double fltlist_next_token(int * const list_end){
 %x LOOPEXTRACTOUTQSQ
 %x LOOPEXTRACTINQSQ
 %x LOOPEXTRACTSAMPLES
+%x LOOPEXTRACTOUTPUTFILENAMEPREFIX
+%x LOOPEXTRACTOUTPUTFILENAMESUFFIX
 %x LOOPEXTRACTFILENAMESUFFIX
 %x LOOPEXTRACTFILENAMEPREFIX
 %x LOOPEXTRACTINPATH
@@ -423,6 +425,8 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
 
 ^LoopExtract_InPath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
+^LoopExtract_OutputFilenamePrefix{SPC}*={SPC}*   BEGIN(LOOPEXTRACTOUTPUTFILENAMEPREFIX);
+^LoopExtract_OutputFilenameSuffix{SPC}*={SPC}*   BEGIN(LOOPEXTRACTOUTPUTFILENAMESUFFIX);
 ^LoopExtract_FilenamePrefix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMEPREFIX);
 ^LoopExtract_FilenameSuffix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMESUFFIX);
 ^LoopExtract_NstochAccumulated{SPC}*={SPC}*      BEGIN(LOOPEXTRACTNSTOCHACCUMULATED);
@@ -659,6 +663,25 @@ static inline double fltlist_next_token(int * const list_end){
     yy_fatal_error(error_message);
   }
   if(cvc::myverbose!=0) printf("# [read_input_parser] input path set to %s\n",yytext);
+}
+<LOOPEXTRACTOUTPUTFILENAMEPREFIX>{FILENAME} {
+  int count=snprintf(cvc::g_LoopExtract_OutputFilenamePrefix,400,"%s",yytext);
+  char error_message[200];
+  if ((count>=400) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract outputfilename prefix parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] outputfilename prefix set to %s\n",yytext);
+}
+
+<LOOPEXTRACTOUTPUTFILENAMESUFFIX>{FILENAME} {
+  int count=snprintf(cvc::g_LoopExtract_OutputFilenameSuffix,400,"%s",yytext);
+  char error_message[200];
+  if ((count>=400) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract outputfilename suffix parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] outputfilename suffix set to %s\n",yytext);
 }
 
 <LOOPEXTRACTFILENAMEPREFIX>{FILENAME} {

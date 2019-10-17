@@ -194,6 +194,10 @@ namespace cvc {
 #define _default_source_gamma_id_number 0
 #define _default_LoopExtract_FilenamePrefix "MG_loop_lightquark_conf_conf"
 #define _default_LoopExtract_FilenameSuffix "runtype_probD8_part1_stoch_NeV0"
+#define _default_LoopExtract_OutputFilenamePrefix "filtered_MG_loop_lightquark_conf_conf"
+#define _default_LoopExtract_OutputFilenameSuffix "runtype_probD8_part1_stoch_NeV0"
+
+
 #define _default_LoopExtract_OutQSq 4.
 #define _default_LoopExtract_InQSq 12
 #define _default_LoopExtract_SpinTrace 0

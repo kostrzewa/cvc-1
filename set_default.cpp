@@ -89,6 +89,21 @@ void set_default_input_values(void) {
       exit(1);
     }
   }
+  count=snprintf(g_LoopExtract_OutputFilenameSuffix,400,"%s",_default_LoopExtract_OutputFilenameSuffix);
+  if ((count >=400) || (count<0)){
+    if (g_proc_id == 0){
+      fprintf(stderr,"[[set_default_input_values]] To large _default_LoopExtract_OutputFilenameSuffix\n");
+      exit(1);
+    }
+  }
+
+  count=snprintf(g_LoopExtract_OutputFilenamePrefix,400,"%s",_default_LoopExtract_OutputFilenamePrefix);
+  if ((count >=400) || (count<0)){
+    if (g_proc_id == 0){
+      fprintf(stderr,"[[set_default_input_values]] To large _default_LoopExtract_OutputFilenamePrefix\n");
+      exit(1);
+    }
+  }
 
   strcpy(filename_prefix,      _default_filename_prefix);
   strcpy(filename_prefix2,     _default_filename_prefix2);
