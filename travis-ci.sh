@@ -113,6 +113,9 @@ popd
 ###############################################################################
 yamlcpp_builddir=yamlcpp_builddir
 git clone https://github.com/jbeder/yaml-cpp
+push yaml-cpp
+git checkout e0e01d53c27ffee6c86153fa41e7f5e57d3e5c90
+popd
 mkdir -p "$yamlcpp_builddir"
 pushd "$yamlcpp_builddir"
 cmake \
