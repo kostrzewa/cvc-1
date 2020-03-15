@@ -231,10 +231,15 @@ int main(int argc, char **argv) {
     }
   }
 
-  snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
+  if (g_LoopExtract_FilenameBuild == 1){
+    snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
           g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix,
           Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch,
-          Nsave, g_LoopExtract_InQSq );
+          g_LoopExtract_NsaveStoch, g_LoopExtract_InQSq );
+  }
+  else{
+    snprintf(filename, 1200, "%s/%s.%04d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf);
+  }
 
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
@@ -272,6 +277,7 @@ int main(int argc, char **argv) {
     EXIT(1);
   }
 
+
   int filtered_sink_momentum_list[MAX_MOMENTUM_NUMBER][3];
   int filtered_sink_momentum_index[MAX_MOMENTUM_NUMBER];
   int index=0;
@@ -292,7 +298,7 @@ int main(int argc, char **argv) {
   int filtered_sink_momentum_number = index;
 
   char *attribute_correlator;
-  get_attribute_from_h5_file (&attribute_correlator, filename, "Correlator-info", io_proc ) ;
+//  get_attribute_from_h5_file (&attribute_correlator, filename, "Correlator-info", io_proc ) ;
 
   char *attribute_ensemble_info;
   get_attribute_from_h5_file (&attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
@@ -305,7 +311,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * allocate memory for contractions
    ***************************************************************************/
-  double **** loop = init_4level_dtable ( g_LoopExtract_Nstoch, T, g_sink_momentum_number, 32 );
+  double **** loop = init_4level_dtable ( g_LoopExtract_Nstoch/g_LoopExtract_NsaveStoch, T, g_sink_momentum_number, 32 );
   if ( loop == NULL ) {
     fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
@@ -314,8 +320,8 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * allocate memory for filtered_contractions
    ***************************************************************************/
-  double **** loop_filtered = init_4level_dtable ( g_LoopExtract_Nstoch, T, filtered_sink_momentum_number, 32 );
-  if ( loop == NULL ) {
+  double **** loop_filtered = init_4level_dtable ( g_LoopExtract_Nstoch/g_LoopExtract_NsaveStoch, T, filtered_sink_momentum_number, 32 );
+  if ( loop_filtered == NULL ) {
     fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
   }
@@ -339,12 +345,12 @@ int main(int argc, char **argv) {
     if (g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] != 4){
       snprintf(filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5",
               g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix,
-              g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq,
+              g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch , (int)g_LoopExtract_OutQSq,
               g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]  );
     } else {
       snprintf(filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
                g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix,
-               g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq);
+               g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, (int)g_LoopExtract_OutQSq);
     }
 
     if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
@@ -354,12 +360,12 @@ int main(int argc, char **argv) {
       fprintf ( stderr, "[loop_extact] Error from loop_write_momentum_list_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
       EXIT(1);
     }
-    set_attribute_in_h5_file (attribute_correlator, filename, "Correlator-info", io_proc ) ;
+//    set_attribute_in_h5_file (attribute_correlator, filename, "Correlator-info", io_proc ) ;
     set_attribute_in_h5_file (attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
     set_attribute_in_h5_file (attribute_nmoms, filename, "Nmoms", io_proc ) ;
     set_attribute_in_h5_file (attribute_qsq, filename, "Qsq", io_proc ) ;
 
-    free(attribute_correlator);
+//    free(attribute_correlator);
     free(attribute_ensemble_info);
 
     if ((io_proc == 2) && (g_LoopExtract_ASCII_Output == 1)) {
@@ -380,12 +386,13 @@ int main(int argc, char **argv) {
     /***************************************************************************
      * loop on stochastic oet samples
      ***************************************************************************/
-      for ( int isample = g_sourceid; isample < g_LoopExtract_Nstoch; isample += g_sourceid_step )
+      for ( int isample = 0; isample < g_LoopExtract_Nstoch/g_LoopExtract_NsaveStoch; isample += 1 )
       {
 
-        int const Nstoch = isample * Nsave + 1;
+        int const Nstoch = isample * g_LoopExtract_NsaveStoch + g_LoopExtract_FirstStochIndex;
         char loop_type[100];
         char loop_name[100];
+        
 
         int inner_loop_length;
 
@@ -446,9 +453,14 @@ int main(int argc, char **argv) {
 
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
-          snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
+          if (g_LoopExtract_FilenameBuild ==1){
+            snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
                    g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf,
-                   g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
+                   g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, g_LoopExtract_InQSq );
+          }
+          else{
+            snprintf(filename, 1200, "%s/%s.%04d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf);
+          }
 
           exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
           if ( exitstatus != 0 ) {
@@ -495,12 +507,16 @@ int main(int argc, char **argv) {
 
                       loop_filtered[isample][x0][imom][0] = sp[0]+sp[10]+sp[20]+sp[30];
                       loop_filtered[isample][x0][imom][1] = sp[1]+sp[11]+sp[21]+sp[31];
+                      loop_filtered[isample][x0][imom][0] = loop_filtered[isample][x0][imom][0]/(double)g_LoopExtract_NsaveStoch ;
+                      loop_filtered[isample][x0][imom][1] = loop_filtered[isample][x0][imom][1]/(double)g_LoopExtract_NsaveStoch ;
 
                     }
                     else{
                       for( int ic = 0; ic < 16; ic++ ) {
                         loop_filtered[isample][x0][imom][2*ic+0]=sp[2*ic+0];
                         loop_filtered[isample][x0][imom][2*ic+1]=sp[2*ic+1];
+                        loop_filtered[isample][x0][imom][2*ic+0]=loop_filtered[isample][x0][imom][2*ic+0]/(double)g_LoopExtract_NsaveStoch;
+                        loop_filtered[isample][x0][imom][2*ic+1]=loop_filtered[isample][x0][imom][2*ic+1]/(double)g_LoopExtract_NsaveStoch;
                       }   
                     }
                     if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
@@ -510,7 +526,7 @@ int main(int argc, char **argv) {
                       for( int ic = 0; ic < 16; ic++ ) {
                         fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
                          g_sink_momentum_list[filtered_sink_momentum_index[imom]][0], g_sink_momentum_list[filtered_sink_momentum_index[imom]][1], g_sink_momentum_list[filtered_sink_momentum_index[imom]][2],
-                         ic/4, ic%4, sp[2*ic], sp[2*ic+1] );
+                         ic/4, ic%4, sp[2*ic]/(double)g_LoopExtract_NsaveStoch, sp[2*ic+1]/(double)g_LoopExtract_NsaveStoch );
                       }  /* end of loop on components */
                     }  /* end of g_LoopExtract_ASCII_Output */
                   }  /* end of loop on momenta */
@@ -541,10 +557,10 @@ int main(int argc, char **argv) {
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
           if (g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] != 4){
-            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq, g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]);
+            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, (int)g_LoopExtract_OutQSq, g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]);
           }
           else{
-            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix, g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq);
+            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, (int)g_LoopExtract_OutQSq);
           }
           if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 

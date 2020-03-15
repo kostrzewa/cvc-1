@@ -66,6 +66,12 @@ LoopExtract_OutQSq = 4
 # How many stochastic samples were used to estimate the loops
 LoopExtract_Samples = 64
 
+# Step-size in saving stochastic samples
+LoopExtract_NsaveStoch = 1
+
+# Index of the first stochastic sample
+LoopExtracT_StartStochIndex = 1
+
 # Types of loops which are to be extracted in this run
 # See CalcLoops and/or hadron's cyprus_readutils.R for more details
 # on the loop types

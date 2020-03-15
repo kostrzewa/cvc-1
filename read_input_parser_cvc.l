@@ -241,6 +241,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x LOOPEXTRACTSPINPROJECTGAMMABASIS
 %x LOOPEXTRACTFILTERLOOPTYPES
 %x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
+%x LOOPEXTRACTFILENAMEBUILD
 %x LOOPEXTRACTLEGACYTRAJ
 %x LOOPEXTRACTSPINPROJECT
 %x LOOPEXTRACTSPINPROJECTSPINTRACE
@@ -254,6 +255,8 @@ static inline double fltlist_next_token(int * const list_end){
 %x LOOPEXTRACTFILENAMESUFFIX
 %x LOOPEXTRACTFILENAMEPREFIX
 %x LOOPEXTRACTINPATH
+%x LOOPEXTRACT_FIRSTSTOCHINDEX
+%x LOOPEXTRACT_NSAVESTOCH
 %x SEQSRCMOM
 %x SEQSRCMOMX
 %x SEQSRCMOMY
@@ -424,6 +427,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
 
+^LoopExtract_FilenameBuild{SPC}*={SPC}*          BEGIN(LOOPEXTRACTFILENAMEBUILD);
 ^LoopExtract_InPath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
 ^LoopExtract_OutputFilenamePrefix{SPC}*={SPC}*   BEGIN(LOOPEXTRACTOUTPUTFILENAMEPREFIX);
 ^LoopExtract_OutputFilenameSuffix{SPC}*={SPC}*   BEGIN(LOOPEXTRACTOUTPUTFILENAMESUFFIX);
@@ -439,6 +443,8 @@ static inline double fltlist_next_token(int * const list_end){
 ^LoopExtract_InQSq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
 ^LoopExtract_FilterLoopTypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
 ^LoopExtract_Samples{SPC}*={SPC}*                BEGIN(LOOPEXTRACTSAMPLES);
+^LoopExtracT_StartStochIndex{SPC}*={SPC}*        BEGIN(LOOPEXTRACT_FIRSTSTOCHINDEX);
+^LoopExtract_NsaveStoch{SPC}*={SPC}*             BEGIN(LOOPEXTRACT_NSAVESTOCH);
 ^LoopExtract_ASCII_Output{SPC}*={SPC}*         BEGIN(LOOPEXTRACTASCIIOUTPUT);
 
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
@@ -709,6 +715,16 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
 }
 
+<LOOPEXTRACT_FIRSTSTOCHINDEX>{DIGIT}+ {
+  cvc::g_LoopExtract_FirstStochIndex = (unsigned int)atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_FirstNstochIndex set to %s\n",yytext);
+}
+
+<LOOPEXTRACT_NSAVESTOCH>{DIGIT}+ {
+  cvc::g_LoopExtract_NsaveStoch = (unsigned int)atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NsaveStoch set to %s\n",yytext);
+}
+
 <LOOPEXTRACTINQSQ>{DIGIT}+ {
   cvc::g_LoopExtract_InQSq = atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] input momenta upto %d\n", cvc::g_LoopExtract_InQSq);
@@ -762,7 +778,16 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
   }
 }
-
+<LOOPEXTRACTFILENAMEBUILD>{FILENAME} {
+ if (strcmp(yytext,"yes")==0){
+    cvc::g_LoopExtract_FilenameBuild = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_FilenameBuild is on  we build the filenames using the number of samples etc.\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_LoopExtract_FilenameBuild = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_FilenameBuild is off only the conf number is used to build the filename\n");
+  }
+}
 <LOOPEXTRACTLEGACYTRAJ>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_LegacyTraj = 1;
